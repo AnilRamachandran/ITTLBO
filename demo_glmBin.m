@@ -1,0 +1,33 @@
+clear all
+xx = randn(100,30); %data
+yy = randi(2,100,1)-1; %label
+
+idxtrain = [1:70];
+idxtest = [71:100];
+
+xxtrain = xx(idxtrain,:);
+yytrain = yy(idxtrain);
+
+xxtest = xx(idxtest,:);
+yytest = yy(idxtest);
+
+%%glmBin options
+
+alpha = 0.8;
+lambda = 1e-2;  % vary it from 1e-2 to 1e-5
+glmOpt.l2_penalty		= (1-alpha)*lambda; % vary it from 1e-2 to 1e-5
+glmOpt.l1_penalty		= (alpha)*lambda; %keep this as zero
+glmOpt.nIters			= 10000;
+glmOpt.epsilon			= 1e-9;
+glmOpt.report_interval	= 10;
+
+%%training
+glmOpt.label = yytrain;
+fitall = glmBin('logit',[xxtrain ones(size(xxtrain,1),1)],zeros(1,size(xxtrain,2)+1),glmOpt,'train'); %bias is also added
+
+
+%%test
+deci = glmBin('logit',[xxtest ones(size(xxtest,1),1)],fitall,glmOpt,'test');
+[~,~,~,auc] = perfcurve(yytest,deci,1);
+fprintf('AUC: %0.3f\n',auc);
+
